@@ -1,3 +1,4 @@
+import time
 import cv2
 import numpy as np
 from kivy.app import App
@@ -9,6 +10,7 @@ from kivy.uix.image import Image
 from kivy.clock import Clock
 import threading
 import queue
+import pygame
 
 class MotionDetectorApp(App):
     def build(self):
@@ -18,6 +20,8 @@ class MotionDetectorApp(App):
         self.detected_label = Label(text="Not Detected", color=(1, 1, 1, 1))
         self.sensitivity_slider = Slider(min=1, max=100, value=50)
         self.sensitivity_slider.bind(value=self.on_sensitivity_change)
+        self.last_sound_time = 0  
+
 
         self.layout = BoxLayout(orientation='vertical')
         self.layout.add_widget(self.detected_label)
@@ -80,6 +84,13 @@ class MotionDetectorApp(App):
         if len(faces) > 0:
             self.detected_label.text = "Detected"
             self.detected_label.color = (1, 0, 0, 1)
+            # Check if sound has already been played within the last 3 seconds
+            if time.time() - self.last_sound_time >= 3:
+                pygame.mixer.init()
+                pygame.mixer.music.load("detected.mp3")
+                pygame.mixer.music.set_volume(0.5)  # Set volume to 50%
+                pygame.mixer.music.play()
+                self.last_sound_time = time.time()
         else:
             self.detected_label.text = "Not Detected"
             self.detected_label.color = (1, 1, 1, 1)
